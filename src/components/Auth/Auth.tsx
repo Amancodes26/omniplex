@@ -20,55 +20,10 @@ const Auth = (props: Props) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
 
-  const handleAuth = async () => {
-    setLoading(true);
-    try {
-      const auth = getAuth();
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-
-      const userRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userRef);
-
-      if (userDoc.exists()) {
-        await setDoc(
-          userRef,
-          {
-            userDetails: {
-              email: user.email,
-              name: user.displayName,
-              profilePic: user.photoURL,
-            },
-          },
-          { merge: true }
-        );
-      } else {
-        await setDoc(userRef, {
-          userDetails: {
-            email: user.email,
-            name: user.displayName,
-            profilePic: user.photoURL,
-            createdAt: serverTimestamp(),
-          },
-        });
-      }
-
-      dispatch(setAuthState(true));
-      dispatch(
-        setUserDetailsState({
-          uid: user.uid,
-          name: user.displayName ?? "",
-          email: user.email ?? "",
-          profilePic: user.photoURL ?? "",
-        })
-      );
-      props.onClose();
-      setLoading(false);
-    } catch (error) {
-      console.log("error", error);
-      setLoading(false);
-    }
+  const handleAuth = () => {
+    props.onClose();
+    router.push('/login')
+   
   };
 
   return (
