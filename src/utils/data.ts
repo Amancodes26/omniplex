@@ -4,6 +4,7 @@ import Writing from "../../public/svgs/options/Writing.svg";
 import Youtube from "../../public/svgs/options/Youtube.svg";
 import Reddit from "../../public/svgs/options/Reddit.svg";
 import Stackoverflow from "../../public/svgs/options/Stackoverflow.svg";
+import BgRemoverIcon from "../../public/svgs/plugins/BgRemover.svg";
 
 export const focusOptions = [
   {
@@ -82,5 +83,13 @@ export const PLUGINS = [
     comingSoon: false,
     url: "/plugins/dictionary",
     description: "Look up word definitions",
+  },
+  {
+    tag: 'Image Tools',
+    name: 'Background Remover',
+    comingSoon: false,
+    url: '/Bgremover',
+    icon: BgRemoverIcon,
+    description: 'Remove backgrounds from images with AI'
   },
 ];

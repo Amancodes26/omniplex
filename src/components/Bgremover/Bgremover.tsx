@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import styles from './Bgremover.module.css';
+import SpinnerWhite from '../SpinnerWhite/SpinnerWhite';
 
 const BackgroundRemover = () => {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -71,71 +72,76 @@ const BackgroundRemover = () => {
 
   return (
     <div className={styles.container}>
-      <h1>Background Remover</h1>
+      <div className={styles.header}>
+        <h1>Background Remover</h1>
+      </div>
       
       <div className={styles.uploadSection}>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className={styles.fileInput}
-        />
-        
-        <button
-          onClick={removeBackground}
-          disabled={!selectedImage || loading}
-          className={styles.button}
-        >
-          {loading ? 'Processing...' : 'Remove Background'}
-        </button>
+        <div className={styles.inputGroup}>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleImageUpload}
+            className={styles.fileInput}
+          />
+          
+          <button
+            onClick={removeBackground}
+            disabled={!selectedImage || loading}
+            className={styles.button}
+          >
+            {loading ? (
+              <>
+                <SpinnerWhite />
+                Processing...
+              </>
+            ) : (
+              'Remove Background'
+            )}
+          </button>
+        </div>
+
+        {error && <div className={styles.error}>{error}</div>}
       </div>
 
-      {error && <div className={styles.error}>{error}</div>}
+      {(selectedImage || processedImage) && (
+        <div className={styles.imageContainer}>
+          {selectedImage && (
+            <div className={styles.imageWrapper}>
+              <h3>Original Image</h3>
+              <div className={styles.imageContent}>
+                <Image
+                  src={URL.createObjectURL(selectedImage)}
+                  alt="Original"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                />
+              </div>
+            </div>
+          )}
 
-      <div className={styles.imageContainer}>
-        {selectedImage && (
-          <div className={styles.imageWrapper}>
-            <h3>Original Image</h3>
-            <Image
-              src={URL.createObjectURL(selectedImage)}
-              alt="Original"
-              width={300}
-              height={300}
-              style={{
-                width: '100%',
-                height: 'auto',
-                maxHeight: '300px',
-                objectFit: 'contain'
-              }}
-            />
-          </div>
-        )}
-
-        {processedImage && (
-          <div className={styles.imageWrapper}>
-            <h3>Processed Image</h3>
-            <Image
-              src={processedImage}
-              alt="Processed"
-              width={300}
-              height={300}
-              style={{
-                width: '100%',
-                height: 'auto',
-                maxHeight: '300px',
-                objectFit: 'contain'
-              }}
-            />
-            <a
-              href={processedImage}
-              download="processed-image.png"
-              className={styles.downloadButton}
-            >
-              Download
-            </a>
-          </div>
-        )}
-      </div>
+          {processedImage && (
+            <div className={styles.imageWrapper}>
+              <h3>Processed Image</h3>
+              <div className={styles.imageContent}>
+                <Image
+                  src={processedImage}
+                  alt="Processed"
+                  fill
+                  style={{ objectFit: 'contain' }}
+                />
+              </div>
+              <a
+                href={processedImage}
+                download="processed-image.png"
+                className={styles.downloadButton}
+              >
+                Download Image
+              </a>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

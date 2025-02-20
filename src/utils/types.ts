@@ -153,3 +153,19 @@ export type LibraryItem = {
   url: string;
   date: string;
 };
+
+export interface Plugin {
+  tag: string;
+  name: string;
+  comingSoon: boolean;
+  url: string;
+  icon?: ReactNode;
+  description: string;
+}
+
+// Add new type for background remover if not already present
+export interface BgRemoverConfig {
+  maxFileSize: number;
+  allowedFileTypes: string[];
+  outputFormat: string;
+}
