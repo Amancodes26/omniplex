@@ -95,7 +95,7 @@ const Sidebar = () => {
       setSelected("profile");
     } else {
       closeSidebar();
-      onOpen();
+      router.push('/login') //changed from onOpen() to new login page 
     }
   };
 
