@@ -1,3 +1,4 @@
+import {useRouter} from "next/navigation"
 import React, { useEffect, useRef, useState } from "react";
 import styles from "./Settings.module.css";
 import Image from "next/image";
@@ -32,6 +33,7 @@ import Info from "../../../public/svgs/Info.svg";
 import Selector from "../../../public/svgs/Selector.svg";
 
 const Settings = () => {
+  const router = useRouter();
   const dispatch = useDispatch();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isAuthenticated = useSelector(selectAuthState);
@@ -88,6 +90,9 @@ const Settings = () => {
     aiPresence,
     aiCustomPrompt,
   ]);
+  const handleSignIn = ()=>{
+    router.push('/login');
+  };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setModelLocal(e.target.value);
@@ -272,13 +277,13 @@ const Settings = () => {
       {!isAuthenticated && (
         <div className={styles.modalOverlay}>
           {!isAuthenticated && (
-            <div className={styles.modalButton} onClick={() => handleModal()}>
+            <div className={styles.modalButton} onClick={handleSignIn}>
               Sign In
             </div>
           )}
         </div>
       )}
-      <Auth isOpen={isOpen} onClose={onClose} />
+      {/* <Auth isOpen={isOpen} onClose={onClose} /> */}
     </div>
   );
 };
