@@ -45,7 +45,12 @@ export async function GET(request: Request) {
 
     if (!chatThread) {
       return new ImageResponse(
-        <img width="1200" height="630" src="https://omniplex.ai/OGImage.png" />,
+        <img 
+          width="1200" 
+          height="630" 
+          src="https://omniplex.ai/OGImage.png" 
+          alt="OG Image"  // Added alt text
+        />,
         {
           width: 1200,
           height: 630,

@@ -95,13 +95,13 @@ const LoginPage = () => {
         </div>
         <div className={styles.loginRight}>
           <div className={styles.animatedTextBlock}>
-            "Experience the power of AI-driven conversations"
+            &ldquo;Experience the power of AI-driven conversations&rdquo;
           </div>
           <div className={styles.animatedTextBlock}>
-            "Seamless integration with multiple AI models"
+            &ldquo;Seamless integration with multiple AI models&rdquo;
           </div>
           <div className={styles.animatedTextBlock}>
-            "Your personal AI assistant, available 24/7"
+            &ldquo;Your personal AI assistant, available 24/7&rdquo;
           </div>
         </div>
       </section>
@@ -123,16 +123,16 @@ const LoginPage = () => {
             </p>
           </div>
           <div className={styles.loginRight}>
-          <div className={styles.animatedTextBlock}>
-            "Experience the power of AI-driven conversations"
+            <div className={styles.animatedTextBlock}>
+              &ldquo;Experience the power of AI-driven conversations&rdquo;
+            </div>
+            <div className={styles.animatedTextBlock}>
+              &ldquo;Seamless integration with multiple AI models&rdquo;
+            </div>
+            <div className={styles.animatedTextBlock}>
+              &ldquo;Your personal AI assistant, available 24/7&rdquo;
+            </div>
           </div>
-          <div className={styles.animatedTextBlock}>
-            "Seamless integration with multiple AI models"
-          </div>
-          <div className={styles.animatedTextBlock}>
-            "Your personal AI assistant, available 24/7"
-          </div>
-        </div>
         </div>
       </section>
 
