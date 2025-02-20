@@ -73,6 +73,9 @@ const History = () => {
       setDeleting(false);
     }
   };
+  const handleSignIn =()=>{
+    router.push('/login');
+  };
 
   const handleAuth = () => {
     onOpen();
@@ -161,7 +164,7 @@ const History = () => {
       </ScrollShadow>
       {!isAuthenticated && (
         <div className={styles.modalOverlay}>
-          <div className={styles.button} onClick={handleAuth}>
+          <div className={styles.button} onClick={handleSignIn}>
             Sign In
           </div>
         </div>

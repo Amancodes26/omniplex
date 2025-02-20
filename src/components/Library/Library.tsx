@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import styles from "./Library.module.css";
 import Image from "next/image";
 import Auth from "../Auth/Auth";
@@ -24,6 +25,7 @@ import Bin from "../../../public/svgs/Bin.svg";
 import FolderInactive from "../../../public/svgs/sidebar/Folder_Inactive.svg";
 
 const Library = () => {
+  const router = useRouter();
   const { isOpen, onOpen, onClose } = useDisclosure();
   const isAuthenticated = useSelector(selectAuthState);
   const userDetails = useSelector(selectUserDetailsState);
@@ -60,6 +62,9 @@ const Library = () => {
       fetchLibraryData();
       setDeleting(false);
     }
+  };
+  const handleSignIn =()=>{
+    router.push('/login');
   };
 
   const handleAuth = () => {
@@ -130,7 +135,7 @@ const Library = () => {
       </ScrollShadow>
       {!isAuthenticated && (
         <div className={styles.modalOverlay}>
-          <div className={styles.button} onClick={handleAuth}>
+          <div className={styles.button} onClick={handleSignIn}>
             Sign In
           </div>
         </div>
