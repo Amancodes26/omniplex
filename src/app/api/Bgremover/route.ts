@@ -16,20 +16,19 @@ function base64ToBlob(base64: string, mime: string): Blob {
 
 export async function POST(request: NextRequest) {
   try {
-    // Check if API key exists
-    if (!API_KEY) {
-      return NextResponse.json(
-        { error: 'API key is not configured' },
-        { status: 500 }
-      );
-    }
-
     const { image_base64 } = await request.json();
 
     if (!image_base64) {
       return NextResponse.json(
         { error: 'No image data provided' },
         { status: 400 }
+      );
+    }
+
+    if (!API_KEY) {
+      return NextResponse.json(
+        { error: "API key is not configured" },
+        { status: 500 }
       );
     }
 
@@ -51,7 +50,7 @@ export async function POST(request: NextRequest) {
 
     const url = 'https://removed-bg.p.rapidapi.com/image/matte/v1';
     
-    const options: RequestInit = {
+    const options = {
       method: 'POST',
       headers: {
         'x-rapidapi-key': API_KEY,
@@ -59,7 +58,7 @@ export async function POST(request: NextRequest) {
         // Do NOT manually set Content-Type; let fetch set the boundary for FormData
       },
       body: formData
-    };
+    } as const; // Use const assertion to ensure type safety
 
     const response = await fetch(url, options);
 

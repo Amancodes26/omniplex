@@ -1,20 +1,7 @@
 import { ImageResponse } from "next/og";
-import admin from 'firebase-admin';
-import { getReadingTimeInMinutes } from "@/utils/utils";
-
-// Initialize Firebase Admin if not already initialized
-const initializeFirebaseAdmin = () => {
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-      }),
-    });
-  }
-  return admin;
-};
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../../../firebaseConfig";
+import { cutString, getReadingTimeInMinutes } from "@/utils/utils";
 
 export async function GET(request: Request) {
   try {
@@ -27,18 +14,18 @@ export async function GET(request: Request) {
     let date = "";
     let readingTime = 0;
 
-    if (id.length === 10) {
-      const firebaseAdmin = initializeFirebaseAdmin();
-      const db = firebaseAdmin.firestore();
-      
-      const indexDoc = await db.collection('index').doc(id).get();
-      
-      if (indexDoc.exists) {
-        const { userId } = indexDoc.data() as { userId: string };
-        const chatDoc = await db.collection('users').doc(userId).collection('history').doc(id).get();
-        
-        if (chatDoc.exists) {
-          chatThread = chatDoc.data();
+    if (id.length == 10) {
+      const indexDocRef = doc(db, "index", id);
+      const indexDocSnapshot = await getDoc(indexDocRef);
+
+      if (indexDocSnapshot.exists()) {
+        const { userId } = indexDocSnapshot.data();
+
+        const chatThreadRef = doc(db, "users", userId, "history", id);
+        const chatThreadDoc = await getDoc(chatThreadRef);
+
+        if (chatThreadDoc.exists()) {
+          chatThread = chatThreadDoc.data();
           question = chatThread.chats[0].question;
           const timestamp = chatThread.createdAt.toDate();
           const dateObject = new Date(timestamp);
@@ -58,12 +45,7 @@ export async function GET(request: Request) {
 
     if (!chatThread) {
       return new ImageResponse(
-        <img 
-          width="1200" 
-          height="630" 
-          src="https://omniplex.ai/OGImage.png" 
-          alt="OG Image"  // Added alt text
-        />,
+        <img width="1200" height="630" src="https://omniplex.ai/OGImage.png" />,
         {
           width: 1200,
           height: 630,
