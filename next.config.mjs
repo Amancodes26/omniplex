@@ -25,12 +25,18 @@ const nextConfig = {
     'zod-to-json-schema',
     '@ai-sdk/ui-utils'
   ],
-  webpack: (config) => {
-    config.resolve.fallback = {
-      ...config.resolve.fallback,
-      "utf-8-validate": false,
-      bufferutil: false,
-    };
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+        async_hooks: false,
+        "utf-8-validate": false,
+        bufferutil: false,
+      };
+    }
 
     config.resolve.alias = {
       ...config.resolve.alias,
@@ -86,7 +92,17 @@ const nextConfig = {
       }
     });
 
+    // Add node-loader for .node files
+    config.module.rules.push({
+      test: /\.node$/,
+      use: 'node-loader',
+    });
+
     return config;
+  },
+  experimental: {
+    serverActions: true,
+    esmExternals: 'loose'
   }
 };
 
