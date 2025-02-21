@@ -25,6 +25,7 @@
     "@vercel/speed-insights": "^1.0.10",
     "ai": "^3.0.12",
     "firebase": "^10.9.0",
+    "firebase-admin": "^12.0.0",
     "formidable": "^3.5.1",
     "framer-motion": "^11.0.15",
     "googleapis": "^134.0.0",
