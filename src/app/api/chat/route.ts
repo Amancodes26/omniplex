@@ -1,6 +1,5 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 import OpenAI from 'openai';
-import { ChatCompletionMessage } from 'openai/resources/chat';
 
 // Create an OpenAI API client
 const openai = new OpenAI({
@@ -15,7 +14,7 @@ export async function POST(req: Request) {
     const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       stream: true,
-      messages: messages as ChatCompletionMessage[],
+      messages: messages as OpenAI.Chat.Completions.ChatCompletionMessageParam[],
     });
 
     // Convert the response into a friendly text-stream

@@ -255,8 +255,6 @@ const MainPrompt = () => {
               <Popover
                 placement={"bottom-start"}
                 radius="lg"
-                offset={4}
-                containerPadding={0}
                 isOpen={open}
                 onOpenChange={(open) => setOpen(open)}
               >

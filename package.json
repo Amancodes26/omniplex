@@ -9,6 +9,8 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@emotion/is-prop-valid": "^1.3.1",
+    "@firebase/app": "^0.14.0",
     "@firebase/firestore": "^4.5.0",
     "@firebase/storage": "^0.12.2",
     "@headlessui/react": "^2.0.3",
@@ -24,7 +26,7 @@
     "@vercel/og": "^0.6.2",
     "@vercel/speed-insights": "^1.0.10",
     "ai": "^3.0.12",
-    "firebase": "^10.9.0",
+    "firebase": "^12.0.0",
     "formidable": "^3.5.1",
     "framer-motion": "^11.0.15",
     "googleapis": "^134.0.0",
@@ -53,6 +55,10 @@
     "@babel/plugin-proposal-class-properties": "^7.18.6",
     "@babel/plugin-proposal-private-methods": "^7.18.6",
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
+    "@babel/plugin-transform-class-properties": "^7.27.1",
+    "@babel/plugin-transform-class-static-block": "^7.27.1",
+    "@babel/plugin-transform-private-methods": "^7.27.1",
+    "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@babel/preset-env": "^7.26.9",
     "@tailwindcss/forms": "^0.5.7",
     "@tailwindcss/typography": "^0.5.10",

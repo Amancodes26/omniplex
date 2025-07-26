@@ -25,7 +25,10 @@ const nextConfig = {
     'zod-to-json-schema',
     '@ai-sdk/ui-utils'
   ],
-  webpack: (config) => {
+  experimental: {
+    esmExternals: false
+  },
+  webpack: (config, { isServer }) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
       "utf-8-validate": false,
@@ -38,32 +41,23 @@ const nextConfig = {
       '@ai-sdk/ui-utils': require.resolve('@ai-sdk/ui-utils')
     };
 
-    // Remove existing rules that might conflict
-    config.module.rules = config.module.rules.filter(rule => 
-      !(rule.test && rule.test.toString().includes('.m?js'))
-    );
-
-    // Add new rules
+    // Handle undici and other packages with private fields
     config.module.rules.push({
-      test: /\.m?js/,
+      test: /\.m?js$/,
+      include: /node_modules/,
       type: 'javascript/auto',
       resolve: {
-        fullySpecified: false
-      }
+        fullySpecified: false,
+      },
     });
 
-    // Add JSON handling
+    // Add comprehensive Babel rule for packages with private class fields
     config.module.rules.push({
-      test: /\.json$/,
-      type: 'json',
-    });
-
-    config.module.rules.push({
-      test: /\.(js|mjs|jsx|ts|tsx)$/,
+      test: /\.(js|mjs)$/,
       include: [
+        /node_modules\/undici/,
         /node_modules\/firebase/,
         /node_modules\/@firebase/,
-        /node_modules\/undici/,
         /node_modules\/react-syntax-highlighter/,
         /node_modules\/parse-entities/,
         /node_modules\/character-entities-legacy/,
@@ -75,13 +69,21 @@ const nextConfig = {
       use: {
         loader: 'babel-loader',
         options: {
-          presets: ['@babel/preset-env'],
+          presets: [
+            ['@babel/preset-env', {
+              targets: isServer ? { node: '18' } : { browsers: ['> 1%', 'last 2 versions'] },
+              modules: false,
+              loose: true
+            }]
+          ],
           plugins: [
-            ['@babel/plugin-proposal-private-methods', { loose: true }],
-            ['@babel/plugin-proposal-private-property-in-object', { loose: true }],
-            ['@babel/plugin-proposal-class-properties', { loose: true }]
+            ['@babel/plugin-transform-private-methods', { loose: true }],
+            ['@babel/plugin-transform-private-property-in-object', { loose: true }],
+            ['@babel/plugin-transform-class-properties', { loose: true }],
+            ['@babel/plugin-transform-class-static-block']
           ],
           cacheDirectory: true,
+          sourceType: 'unambiguous'
         }
       }
     });
