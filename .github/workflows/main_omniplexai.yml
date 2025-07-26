@@ -24,59 +24,18 @@ jobs:
       - name: Enable Corepack and install dependencies
         run: |
           corepack enable
-          yarn install --frozen-lockfile
+          yarn install
 
       - name: Build application
         run: yarn build
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Debug build output
-        run: |
-          echo "=== BUILD DEBUG ==="
-          echo "Current directory contents:"
-          ls -la
-          echo ""
-          echo "Contents of .next directory after build:"
-          ls -la .next/ || echo ".next directory doesn't exist!"
-          echo ""
-          if [ -d .next/standalone ]; then
-            echo "Contents of .next/standalone:"
-            ls -la .next/standalone/
-          else
-            echo ".next/standalone directory doesn't exist!"
-          fi
-          echo ""
-          if [ -f .next/BUILD_ID ]; then
-            echo "BUILD_ID content:"
-            cat .next/BUILD_ID
-          else
-            echo "BUILD_ID file doesn't exist!"
-          fi
-          echo ""
-          if [ -d .next/static ]; then
-            echo "Static directory:"
-            ls -la .next/static/
-          else
-            echo ".next/static directory doesn't exist!"
-          fi
-
       - name: Prepare deployment package for standalone build
         run: |
-          # Exit on any error
           set -e
           
           mkdir -p deployment-package
-          
-          echo "=== PACKAGING DEBUG ==="
-          
-          # Check if standalone build exists
-          if [ ! -d .next/standalone ]; then
-            echo "❌ ERROR: .next/standalone directory not found!"
-            echo "Available directories in .next:"
-            ls -la .next/ || echo "No .next directory at all!"
-            exit 1
-          fi
           
           # Copy standalone files
           echo "Copying standalone files..."
@@ -93,27 +52,18 @@ jobs:
             echo "Copying static files..."
             cp -R .next/static deployment-package/.next/static
             echo "✅ Static files copied"
-          else
-            echo "⚠️ No static directory found, creating empty one"
-            mkdir -p deployment-package/.next/static
           fi
           
-          # Copy BUILD_ID
-          if [ -f .next/BUILD_ID ]; then
-            echo "Copying BUILD_ID..."
-            cp .next/BUILD_ID deployment-package/.next/BUILD_ID
-            echo "✅ BUILD_ID copied"
-          else
-            echo "❌ ERROR: BUILD_ID file not found!"
-            exit 1
-          fi
+          # Copy BUILD_ID and other essential files
+          echo "Copying BUILD_ID..."
+          cp .next/BUILD_ID deployment-package/.next/BUILD_ID
+          echo "✅ BUILD_ID copied"
           
-          # Copy other manifest files
           echo "Copying manifest files..."
-          [ -f .next/routes-manifest.json ] && cp .next/routes-manifest.json deployment-package/.next/ && echo "✅ routes-manifest.json copied" || echo "⚠️ routes-manifest.json not found"
-          [ -f .next/prerender-manifest.json ] && cp .next/prerender-manifest.json deployment-package/.next/ && echo "✅ prerender-manifest.json copied" || echo "⚠️ prerender-manifest.json not found"
-          [ -f .next/package.json ] && cp .next/package.json deployment-package/.next/ && echo "✅ .next/package.json copied" || echo "⚠️ .next/package.json not found"
-          [ -f .next/required-server-files.json ] && cp .next/required-server-files.json deployment-package/.next/ && echo "✅ required-server-files.json copied" || echo "⚠️ required-server-files.json not found"
+          [ -f .next/routes-manifest.json ] && cp .next/routes-manifest.json deployment-package/.next/
+          [ -f .next/prerender-manifest.json ] && cp .next/prerender-manifest.json deployment-package/.next/
+          [ -f .next/package.json ] && cp .next/package.json deployment-package/.next/
+          [ -f .next/required-server-files.json ] && cp .next/required-server-files.json deployment-package/.next/
           
           # Copy public folder
           if [ -d public ]; then
@@ -127,14 +77,9 @@ jobs:
           cp yarn.lock deployment-package/
           echo "✅ Package files copied"
           
+          # Final verification
           echo ""
           echo "=== FINAL VERIFICATION ==="
-          echo "Deployment package structure:"
-          ls -la deployment-package/
-          echo ""
-          echo ".next directory in deployment package:"
-          ls -la deployment-package/.next/ || echo "❌ No .next directory!"
-          echo ""
           echo "BUILD_ID verification:"
           if [ -f deployment-package/.next/BUILD_ID ]; then
             echo "✅ BUILD_ID found in deployment package"
@@ -143,28 +88,15 @@ jobs:
             echo "❌ BUILD_ID NOT found in deployment package"
             exit 1
           fi
-          
-          # Create a manifest of what we're uploading
-          echo ""
-          echo "=== CREATING UPLOAD MANIFEST ==="
-          find deployment-package -type f | sort > upload-manifest.txt
-          echo "Files being uploaded:"
-          cat upload-manifest.txt | head -20
-          echo "... (showing first 20 files)"
 
+      # CHANGED: Upload the parent directory instead of deployment-package
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deployment-package
+          path: .  # Upload current directory
           retention-days: 1
-
-      - name: Upload manifest for debugging
-        uses: actions/upload-artifact@v4
-        with:
-          name: upload-manifest
-          path: upload-manifest.txt
-          retention-days: 1
+          compression-level: 0
 
   deploy:
     runs-on: ubuntu-latest
@@ -175,63 +107,37 @@ jobs:
       contents: read
 
     steps:
+      # CHANGED: Download to a different path
       - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: ./deployment
-
-      - name: Download manifest for debugging
-        uses: actions/download-artifact@v4
-        with:
-          name: upload-manifest
-          path: ./
+          path: ./downloaded
 
       - name: Verify deployment structure
         run: |
           echo "=== DEPLOYMENT VERIFICATION ==="
-          echo "What was supposed to be uploaded:"
-          cat upload-manifest.txt | grep -E "(BUILD_ID|server.js|\.next)" || echo "No relevant files in manifest"
+          echo "Contents of downloaded directory:"
+          ls -la ./downloaded/
           echo ""
-          echo "Contents of deployment directory:"
-          ls -la ./deployment/
-          echo ""
-          echo "All files in deployment directory:"
-          find ./deployment -type f | sort | head -20
+          echo "Contents of deployment-package:"
+          ls -la ./downloaded/deployment-package/
           echo ""
           echo "Check for .next directory:"
-          if [ -d ./deployment/.next ]; then
+          if [ -d ./downloaded/deployment-package/.next ]; then
             echo "✅ .next directory found"
-            ls -la ./deployment/.next/
+            ls -la ./downloaded/deployment-package/.next/
           else
             echo "❌ .next directory NOT found"
-            echo "Searching for BUILD_ID anywhere:"
-            find ./deployment -name "*BUILD*" -type f || echo "No BUILD_ID files found anywhere"
             exit 1
           fi
           echo ""
           echo "Check for BUILD_ID:"
-          if [ -f ./deployment/.next/BUILD_ID ]; then
+          if [ -f ./downloaded/deployment-package/.next/BUILD_ID ]; then
             echo "✅ BUILD_ID found with content:"
-            cat ./deployment/.next/BUILD_ID
+            cat ./downloaded/deployment-package/.next/BUILD_ID
           else
-            echo "❌ BUILD_ID NOT found - this will cause deployment failure"
-            exit 1
-          fi
-          echo ""
-          echo "Check for static files:"
-          if [ -d ./deployment/.next/static ]; then
-            echo "✅ Static directory found"
-            ls -la ./deployment/.next/static/ | head -5
-          else
-            echo "❌ Static directory not found"
-          fi
-          echo ""
-          echo "Check for server.js:"
-          if [ -f ./deployment/server.js ]; then
-            echo "✅ server.js found"
-          else
-            echo "❌ server.js not found"
+            echo "❌ BUILD_ID NOT found"
             exit 1
           fi
 
@@ -242,10 +148,11 @@ jobs:
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_598B45F58F3E411F843535247B69A342 }}
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86687C770A2743D7845F1E5D6BA93A8C }}
 
+      # CHANGED: Deploy from the correct path
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'omniplexai'
           slot-name: 'Production'
-          package: ./deployment
+          package: ./downloaded/deployment-package  # Deploy from the correct subdirectory
