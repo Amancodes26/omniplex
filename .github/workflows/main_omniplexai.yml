@@ -41,7 +41,8 @@ jobs:
           cp -R public build-output/
           cp package.json build-output/
           cp yarn.lock build-output/
-          cp next.config.js build-output/ || true
+          cp next.config.mjs build-output/ || true
+
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
@@ -75,4 +76,7 @@ jobs:
         with:
           app-name: 'omniplexai'
           slot-name: 'Production'
-          package: .
+          package: build-output
+          # package: . # Uncomment this line if you want to deploy the entire repository instead of the build output
+          # If you want to deploy the entire repository, use the line above instead of the build output directory
+          # package: . # Uncomment this line if you want to deploy the entire repository instead of the build output
