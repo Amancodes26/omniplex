@@ -1,4 +1,3 @@
-```
 #!/bin/bash
 # Azure Next.js Deployment Script
 # This script prepares a Next.js app for deployment to Azure App Service
@@ -94,5 +93,3 @@ fi
 
 echo "Deployment package structure:"
 find deployment-package -type f -name "*.json" | grep -E "(BUILD_ID|manifest)" | head -10
-
-```
