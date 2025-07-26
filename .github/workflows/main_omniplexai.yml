@@ -1,6 +1,3 @@
-# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
-# More GitHub Actions for Azure: https://github.com/Azure/actions
-
 name: Build and deploy Node.js app to Azure Web App - omniplexai
 
 on:
@@ -35,24 +32,31 @@ jobs:
 
       - name: Prepare deployment package for standalone build
         run: |
-          mkdir deployment-package
-          
-          # Copy the standalone server and its dependencies
+          mkdir -p deployment-package
+
+          # Copy standalone server and dependencies
           cp -R .next/standalone/* deployment-package/
-          
-          # Copy static files to the standalone build
+
+          # Copy static files
           mkdir -p deployment-package/.next/static
           cp -R .next/static/* deployment-package/.next/static/
-          
-          # Copy public folder
-          cp -R public deployment-package/public
-          
-          # Copy package.json for yarn start command
+
+          # Copy essential .next files including BUILD_ID
+          mkdir -p deployment-package/.next
+          cp .next/BUILD_ID deployment-package/.next/
+          cp .next/routes-manifest.json deployment-package/.next/ 2>/dev/null || true
+          cp .next/prerender-manifest.json deployment-package/.next/ 2>/dev/null || true
+          cp .next/package.json deployment-package/.next/ 2>/dev/null || true
+
+          # Copy public folder if it exists
+          if [ -d public ]; then
+            cp -R public deployment-package/public
+          fi
+
+          # Copy package.json and yarn.lock
           cp package.json deployment-package/
-          
-          # Copy yarn.lock for consistency
           cp yarn.lock deployment-package/
-          
+
           # Verify the structure
           echo "Deployment package structure:"
           ls -la deployment-package/
@@ -89,6 +93,8 @@ jobs:
           ls -la ./deployment/server.js || echo "server.js not found"
           echo "Checking for .next directory:"
           ls -la ./deployment/.next/ || echo ".next directory not found"
+          echo "Checking for BUILD_ID:"
+          cat ./deployment/.next/BUILD_ID || echo "BUILD_ID not found"
 
       - name: Login to Azure
         uses: azure/login@v2
