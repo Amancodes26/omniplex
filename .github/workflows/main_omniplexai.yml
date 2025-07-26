@@ -52,7 +52,7 @@ jobs:
             cp -R public deployment-package/public
           fi
 
-          # Copy package.json and yarn.lock
+          # Copy package.json and yarn.lock for yarn start
           cp package.json deployment-package/
           cp yarn.lock deployment-package/
 
