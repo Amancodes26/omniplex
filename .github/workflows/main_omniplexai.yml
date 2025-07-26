@@ -19,6 +19,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '20.x'
+          cache: 'yarn'
 
       - name: Enable Corepack and install dependencies
         run: |
@@ -30,51 +31,88 @@ jobs:
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
+      - name: Debug build output
+        run: |
+          echo "Contents of .next directory after build:"
+          ls -la .next/
+          echo ""
+          echo "Contents of .next/standalone:"
+          ls -la .next/standalone/
+          echo ""
+          echo "BUILD_ID content:"
+          cat .next/BUILD_ID
+          echo ""
+          echo "Static directory:"
+          ls -la .next/static/
+
       - name: Prepare deployment package for standalone build
         run: |
           mkdir -p deployment-package
 
-          # Copy standalone server and dependencies
+          # First copy all standalone files
+          echo "Copying standalone files..."
           cp -R .next/standalone/* deployment-package/
-
-          # Create .next directory and copy static files
+          
+          # Ensure .next directory exists in deployment package
+          echo "Creating .next directory in deployment package..."
           mkdir -p deployment-package/.next
-          cp -R .next/static deployment-package/.next/
+          
+          # Copy static files to .next/static
+          echo "Copying static files..."
+          cp -R .next/static deployment-package/.next/static
+          
+          # Copy BUILD_ID and other essential files
+          echo "Copying BUILD_ID..."
+          cp .next/BUILD_ID deployment-package/.next/BUILD_ID
+          
+          echo "Copying other manifest files..."
+          cp .next/routes-manifest.json deployment-package/.next/ 2>/dev/null || echo "routes-manifest.json not found"
+          cp .next/prerender-manifest.json deployment-package/.next/ 2>/dev/null || echo "prerender-manifest.json not found"
+          cp .next/package.json deployment-package/.next/ 2>/dev/null || echo ".next/package.json not found"
+          cp .next/required-server-files.json deployment-package/.next/ 2>/dev/null || echo "required-server-files.json not found"
 
-          # Copy essential .next files including BUILD_ID
-          cp .next/BUILD_ID deployment-package/.next/
-          cp .next/routes-manifest.json deployment-package/.next/ 2>/dev/null || true
-          cp .next/prerender-manifest.json deployment-package/.next/ 2>/dev/null || true
-          cp .next/package.json deployment-package/.next/ 2>/dev/null || true
-
-          # Copy public folder if it exists
+          # Copy public folder
           if [ -d public ]; then
+            echo "Copying public folder..."
             cp -R public deployment-package/public
           fi
 
-          # Copy package.json and yarn.lock for yarn start
+          # Copy package files
           cp package.json deployment-package/
           cp yarn.lock deployment-package/
 
-          # Verify the structure
+          echo "=== VERIFICATION ==="
           echo "Deployment package structure:"
+          find deployment-package -type f -name "BUILD_ID" -o -name "server.js" -o -name "package.json" | head -10
+          echo ""
+          echo "Full deployment-package structure:"
           ls -la deployment-package/
-          echo "Checking .next directory:"
-          ls -la deployment-package/.next/ || echo ".next directory not found"
-          echo "Checking for BUILD_ID:"
-          cat deployment-package/.next/BUILD_ID || echo "BUILD_ID not found"
-          echo "Checking for server.js:"
-          ls -la deployment-package/server.js || echo "server.js not found"
+          echo ""
+          echo ".next directory in deployment package:"
+          ls -la deployment-package/.next/
+          echo ""
+          echo "BUILD_ID verification:"
+          if [ -f deployment-package/.next/BUILD_ID ]; then
+            echo "✅ BUILD_ID found in deployment package"
+            echo "Content: $(cat deployment-package/.next/BUILD_ID)"
+          else
+            echo "❌ BUILD_ID NOT found in deployment package"
+            echo "Available files in .next:"
+            ls -la deployment-package/.next/ || echo "No .next directory"
+            exit 1
+          fi
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
           path: deployment-package
+          retention-days: 1
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
+    environment: production
     permissions:
       id-token: write
       contents: read
@@ -84,20 +122,50 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: ./deployment  # Download to ./deployment directory
+          path: ./deployment
 
       - name: Verify deployment structure
         run: |
-          echo "Contents of current directory:"
-          ls -la ./
+          echo "=== DEPLOYMENT VERIFICATION ==="
           echo "Contents of deployment directory:"
           ls -la ./deployment/
-          echo "Checking for server.js:"
-          ls -la ./deployment/server.js || echo "server.js not found"
-          echo "Checking for .next directory:"
-          ls -la ./deployment/.next/ || echo ".next directory not found"
-          echo "Checking for BUILD_ID:"
-          cat ./deployment/.next/BUILD_ID || echo "BUILD_ID not found"
+          echo ""
+          echo "Check for .next directory:"
+          if [ -d ./deployment/.next ]; then
+            echo "✅ .next directory found"
+            ls -la ./deployment/.next/
+          else
+            echo "❌ .next directory NOT found"
+            echo "Creating .next directory as fallback..."
+            mkdir -p ./deployment/.next
+          fi
+          echo ""
+          echo "Check for BUILD_ID:"
+          if [ -f ./deployment/.next/BUILD_ID ]; then
+            echo "✅ BUILD_ID found with content:"
+            cat ./deployment/.next/BUILD_ID
+          else
+            echo "❌ BUILD_ID NOT found - this will cause deployment failure"
+            echo "Available files:"
+            find ./deployment -name "*BUILD*" -o -name "*.json" | head -10
+            exit 1
+          fi
+          echo ""
+          echo "Check for static files:"
+          if [ -d ./deployment/.next/static ]; then
+            echo "✅ Static directory found"
+            ls -la ./deployment/.next/static/ | head -5
+          else
+            echo "❌ Static directory not found"
+          fi
+          echo ""
+          echo "Check for server.js:"
+          if [ -f ./deployment/server.js ]; then
+            echo "✅ server.js found"
+          else
+            echo "❌ server.js not found"
+            exit 1
+          fi
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -112,4 +180,4 @@ jobs:
         with:
           app-name: 'omniplexai'
           slot-name: 'Production'
-          package: ./deployment  # Deploy from ./deployment directory
+          package: ./deployment
