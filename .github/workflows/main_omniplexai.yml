@@ -212,4 +212,5 @@ jobs:
         with:
           app-name: 'omniplexai'
           slot-name: 'Production'
-          package: ./deployment/deployment-package
+          package: ./deployment
+          startup-command: './startup.sh'
