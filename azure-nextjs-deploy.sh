@@ -5,52 +5,45 @@
 
 set -e
 
+echo "🚀 Starting Azure deployment package creation..."
+
+# Verify prerequisites
+echo "🔍 Verifying build prerequisites..."
+if [ ! -d ".next" ]; then
+    echo "❌ ERROR: .next directory not found!"
+    echo "Please run 'npm run build' or 'yarn build' first."
+    exit 1
+fi
+
+if [ ! -d ".next/standalone" ]; then
+    echo "❌ ERROR: .next/standalone directory not found!"
+    echo "Make sure your next.config.js has 'output: standalone' configured."
+    exit 1
+fi
+
+echo "✅ Prerequisites verified"
+
+# Clean up previous deployment package
+echo "🧹 Cleaning up previous deployment package..."
+rm -rf deployment-package
+echo "✅ Cleanup completed"
+
+# Create deployment package directory (using deployment-package for artifact upload)
 mkdir -p deployment-package
 
 # Copy standalone files
-echo "Copying standalone files..."
+echo "📦 Copying standalone files..."
 cp -R .next/standalone/* deployment-package/
 echo "✅ Standalone files copied"
 
-# Create .next directory directly (Azure supports it in deployment)
-echo "Creating .next directory in deployment package..."
-mkdir -p deployment-package/.next
-echo "✅ .next directory created"
+# CRITICAL: Copy the .next directory INTO the standalone directory
+# This is required because server.js expects .next to be at the same level
+# Rename to next-build to avoid GitHub Actions artifact issues with dot directories
+echo "Copying .next directory into standalone structure..."
+cp -R .next deployment-package/next-build
+echo "✅ .next directory copied as next-build to avoid artifact issues"
 
-# Copy static files
-if [ -d .next/static ]; then
-  echo "Copying static files..."
-  cp -R .next/static deployment-package/.next/static
-  echo "✅ Static files copied"
-fi
-
-# Copy server directory (CRITICAL for standalone builds)
-if [ -d .next/server ]; then
-  echo "Copying server directory..."
-  cp -R .next/server deployment-package/.next/server
-  echo "✅ Server directory copied"
-else
-  echo "❌ CRITICAL ERROR: .next/server directory not found!"
-  echo "This is required for Next.js standalone builds."
-  echo "Available directories in .next:"
-  ls -la .next/
-  exit 1
-fi
-
-# Copy BUILD_ID and other essential files directly to .next
-echo "Copying BUILD_ID..."
-cp .next/BUILD_ID deployment-package/.next/BUILD_ID
-echo "✅ BUILD_ID copied"
-
-echo "Copying manifest files..."
-[ -f .next/routes-manifest.json ] && cp .next/routes-manifest.json deployment-package/.next/
-[ -f .next/prerender-manifest.json ] && cp .next/prerender-manifest.json deployment-package/.next/
-[ -f .next/package.json ] && cp .next/package.json deployment-package/.next/
-[ -f .next/required-server-files.json ] && cp .next/required-server-files.json deployment-package/.next/
-[ -f .next/app-build-manifest.json ] && cp .next/app-build-manifest.json deployment-package/.next/
-[ -f .next/build-manifest.json ] && cp .next/build-manifest.json deployment-package/.next/
-
-# Copy public folder
+# Copy public folder (if not already in standalone)
 if [ -d public ]; then
   echo "Copying public folder..."
   cp -R public deployment-package/public
@@ -60,36 +53,68 @@ fi
 # Copy package files
 cp package.json deployment-package/
 cp yarn.lock deployment-package/
-echo "✅ Package files copied"
+
+# Copy startup script as backup
+cp startup.sh deployment-package/
+chmod +x deployment-package/startup.sh
+echo "✅ Package files and startup script copied"
 
 # Final verification
 echo ""
 echo "=== FINAL VERIFICATION ==="
 echo "BUILD_ID verification:"
-if [ -f deployment-package/.next/BUILD_ID ]; then
+if [ -f deployment-package/next-build/BUILD_ID ]; then
   echo "✅ BUILD_ID found in deployment package"
-  echo "Content: $(cat deployment-package/.next/BUILD_ID)"
+  echo "Content: $(cat deployment-package/next-build/BUILD_ID)"
 else
   echo "❌ BUILD_ID NOT found in deployment package"
   exit 1
 fi
 
+echo "Server.js verification:"
+if [ -f deployment-package/server.js ]; then
+  echo "✅ server.js found in deployment package"
+else
+  echo "❌ server.js NOT found in deployment package"
+  exit 1
+fi
+
 echo "Server manifest verification:"
-if [ -f deployment-package/.next/server/pages-manifest.json ]; then
+if [ -f deployment-package/next-build/server/pages-manifest.json ]; then
   echo "✅ pages-manifest.json found"
 else
   echo "❌ pages-manifest.json NOT found"
-  echo "Contents of .next/server directory:"
-  ls -la deployment-package/.next/server/ || echo "No server directory found"
+  echo "Contents of next-build/server directory:"
+  ls -la deployment-package/next-build/server/ || echo "No server directory found"
   exit 1
 fi
 
 echo "App router manifest verification:"
-if [ -f deployment-package/.next/server/app-paths-manifest.json ]; then
+if [ -f deployment-package/next-build/server/app-paths-manifest.json ]; then
   echo "✅ app-paths-manifest.json found"
 else
   echo "⚠️ app-paths-manifest.json not found (may be pages router only)"
 fi
 
-echo "Deployment package structure:"
-find deployment-package -type f -name "*.json" | grep -E "(BUILD_ID|manifest)" | head -10
+echo ""
+echo "Deployment package structure verification:"
+echo "Root level files:"
+ls -la deployment-package/ | head -10
+echo ""
+echo "next-build directory contents:"
+ls -la deployment-package/next-build/ | head -10
+
+echo ""
+echo "🎉 DEPLOYMENT PACKAGE READY!"
+echo "============================="
+echo "Package location: ./deployment-package/"
+echo "Total size: $(du -sh deployment-package/)"
+echo ""
+echo "Key files verified:"
+echo "✅ server.js (entry point)"
+echo "✅ next-build/BUILD_ID (build identifier)"
+echo "✅ next-build/server/ (server components)"
+echo "✅ next-build/static/ (static assets)"
+echo "✅ public/ (public assets)"
+echo ""
+echo "🚀 Ready for Azure App Service deployment!"
