@@ -53,6 +53,13 @@ jobs:
             echo "✅ Static files copied"
           fi
           
+          # Copy server directory (this is missing!)
+          if [ -d .next/server ]; then
+            echo "Copying server directory..."
+            cp -R .next/server deployment-package/nextjs/server
+            echo "✅ Server directory copied"
+          fi
+          
           # Copy BUILD_ID and other essential files
           echo "Copying BUILD_ID..."
           cp .next/BUILD_ID deployment-package/nextjs/BUILD_ID
@@ -63,6 +70,8 @@ jobs:
           [ -f .next/prerender-manifest.json ] && cp .next/prerender-manifest.json deployment-package/nextjs/
           [ -f .next/package.json ] && cp .next/package.json deployment-package/nextjs/
           [ -f .next/required-server-files.json ] && cp .next/required-server-files.json deployment-package/nextjs/
+          [ -f .next/app-build-manifest.json ] && cp .next/app-build-manifest.json deployment-package/nextjs/
+          [ -f .next/build-manifest.json ] && cp .next/build-manifest.json deployment-package/nextjs/
           
           # Copy public folder
           if [ -d public ]; then
@@ -76,6 +85,36 @@ jobs:
           cp yarn.lock deployment-package/
           echo "✅ Package files copied"
           
+          # Create a startup script that handles the directory rename at runtime
+          cat > deployment-package/startup.sh << 'EOF'
+          #!/bin/bash
+          
+          # Rename nextjs to .next if it doesn't exist
+          if [ -d "./nextjs" ] && [ ! -d "./.next" ]; then
+            echo "Renaming nextjs directory to .next..."
+            mv ./nextjs ./.next
+            echo "Directory renamed successfully"
+          fi
+          
+          # Verify critical files exist
+          if [ ! -f "./.next/BUILD_ID" ]; then
+            echo "ERROR: BUILD_ID not found"
+            exit 1
+          fi
+          
+          if [ ! -f "./.next/server/pages-manifest.json" ]; then
+            echo "ERROR: pages-manifest.json not found"
+            exit 1
+          fi
+          
+          # Start the Next.js server
+          echo "Starting Next.js server..."
+          exec node server.js
+          EOF
+          
+          chmod +x deployment-package/startup.sh
+          echo "✅ Startup script created"
+          
           # Final verification
           echo ""
           echo "=== FINAL VERIFICATION ==="
@@ -87,6 +126,17 @@ jobs:
             echo "❌ BUILD_ID NOT found in deployment package"
             exit 1
           fi
+          
+          echo "Server manifest verification:"
+          if [ -f deployment-package/nextjs/server/pages-manifest.json ]; then
+            echo "✅ pages-manifest.json found"
+          else
+            echo "❌ pages-manifest.json NOT found"
+            exit 1
+          fi
+          
+          echo "Deployment package structure:"
+          find deployment-package -type f -name "*.json" | grep -E "(BUILD_ID|manifest)" | head -10
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -108,35 +158,25 @@ jobs:
           name: node-app
           path: ./deployment
 
-      - name: Rename nextjs directory to .next
-        run: |
-          echo "Renaming nextjs directory to .next..."
-          if [ -d ./deployment/nextjs ]; then
-            mv ./deployment/nextjs ./deployment/.next
-            echo "✅ Directory renamed to .next"
-          else
-            echo "❌ nextjs directory not found"
-            exit 1
-          fi
-      - name: Verify deployment structure
+      - name: Verify deployment structure (DO NOT RENAME HERE)
         run: |
           echo "=== DEPLOYMENT VERIFICATION ==="
           echo "Contents of deployment directory:"
           ls -la ./deployment/
           echo ""
-          echo "Check for .next directory:"
-          if [ -d ./deployment/.next ]; then
-            echo "✅ .next directory found"
-            ls -la ./deployment/.next/
+          echo "Check for nextjs directory:"
+          if [ -d ./deployment/nextjs ]; then
+            echo "✅ nextjs directory found"
+            ls -la ./deployment/nextjs/
           else
-            echo "❌ .next directory NOT found"
+            echo "❌ nextjs directory NOT found"
             exit 1
           fi
           echo ""
           echo "Check for BUILD_ID:"
-          if [ -f ./deployment/.next/BUILD_ID ]; then
+          if [ -f ./deployment/nextjs/BUILD_ID ]; then
             echo "✅ BUILD_ID found with content:"
-            cat ./deployment/.next/BUILD_ID
+            cat ./deployment/nextjs/BUILD_ID
           else
             echo "❌ BUILD_ID NOT found"
             exit 1
@@ -147,6 +187,15 @@ jobs:
             echo "✅ server.js found"
           else
             echo "❌ server.js not found"
+            exit 1
+          fi
+          echo ""
+          echo "Check for startup script:"
+          if [ -f ./deployment/startup.sh ]; then
+            echo "✅ startup.sh found"
+            cat ./deployment/startup.sh
+          else
+            echo "❌ startup.sh not found"
             exit 1
           fi
       - name: Login to Azure
