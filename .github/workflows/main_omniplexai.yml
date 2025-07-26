@@ -99,6 +99,7 @@ jobs:
     needs: build
     environment: production
     permissions:
+      id-token: write
       contents: read
 
     steps:
