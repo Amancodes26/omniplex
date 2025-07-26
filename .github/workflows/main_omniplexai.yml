@@ -40,7 +40,9 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deployment-package
+          path: |
+            deployment-package/**
+             !deployment-package/node_modules/**
           retention-days: 1
 
   deploy:
