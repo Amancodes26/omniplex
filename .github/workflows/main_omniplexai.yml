@@ -112,7 +112,7 @@ jobs:
     needs: build
     environment: production
     permissions:
-      id-token: write
+      id-token: write # Allow the workflow to write ID tokens for Azure login
       contents: read
 
     steps:
@@ -155,13 +155,12 @@ jobs:
           fi
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A710D8AC2F3C4741A1D3BAE272225977 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_598B45F58F3E411F843535247B69A342 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86687C770A2743D7845F1E5D6BA93A8C }}
-          
-
+            client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A710D8AC2F3C4741A1D3BAE272225977 }}
+            tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_598B45F58F3E411F843535247B69A342 }}
+            subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_86687C770A2743D7845F1E5D6BA93A8C }}
+      
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
