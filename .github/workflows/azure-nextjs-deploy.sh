@@ -25,11 +25,17 @@ if [ -d .next/static ]; then
   echo "✅ Static files copied"
 fi
 
-# Copy server directory
+# Copy server directory (CRITICAL for standalone builds)
 if [ -d .next/server ]; then
   echo "Copying server directory..."
   cp -R .next/server deployment-package/.next/server
   echo "✅ Server directory copied"
+else
+  echo "❌ CRITICAL ERROR: .next/server directory not found!"
+  echo "This is required for Next.js standalone builds."
+  echo "Available directories in .next:"
+  ls -la .next/
+  exit 1
 fi
 
 # Copy BUILD_ID and other essential files directly to .next
@@ -74,7 +80,16 @@ if [ -f deployment-package/.next/server/pages-manifest.json ]; then
   echo "✅ pages-manifest.json found"
 else
   echo "❌ pages-manifest.json NOT found"
+  echo "Contents of .next/server directory:"
+  ls -la deployment-package/.next/server/ || echo "No server directory found"
   exit 1
+fi
+
+echo "App router manifest verification:"
+if [ -f deployment-package/.next/server/app-paths-manifest.json ]; then
+  echo "✅ app-paths-manifest.json found"
+else
+  echo "⚠️ app-paths-manifest.json not found (may be pages router only)"
 fi
 
 echo "Deployment package structure:"

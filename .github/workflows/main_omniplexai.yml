@@ -35,7 +35,7 @@ jobs:
           chmod +x ./azure-nextjs-deploy.sh
             ./azure-nextjs-deploy.sh
 
-            
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -63,19 +63,19 @@ jobs:
           echo "Contents of deployment directory:"
           ls -la ./deployment/
           echo ""
-          echo "Check for nextjs directory:"
-          if [ -d ./deployment/nextjs ]; then
-            echo "✅ nextjs directory found"
-            ls -la ./deployment/nextjs/
+          echo "Check for .next directory:"
+          if [ -d ./deployment/.next ]; then
+            echo "✅ .next directory found"
+            ls -la ./deployment/.next/
           else
-            echo "❌ nextjs directory NOT found"
+            echo "❌ .next directory NOT found"
             exit 1
           fi
           echo ""
           echo "Check for BUILD_ID:"
-          if [ -f ./deployment/nextjs/BUILD_ID ]; then
+          if [ -f ./deployment/.next/BUILD_ID ]; then
             echo "✅ BUILD_ID found with content:"
-            cat ./deployment/nextjs/BUILD_ID
+            cat ./deployment/.next/BUILD_ID
           else
             echo "❌ BUILD_ID NOT found"
             exit 1
@@ -89,12 +89,13 @@ jobs:
             exit 1
           fi
           echo ""
-          echo "Check for startup script:"
-          if [ -f ./deployment/startup.sh ]; then
-            echo "✅ startup.sh found"
-            cat ./deployment/startup.sh
+          echo "Check for pages-manifest.json:"
+          if [ -f ./deployment/.next/server/pages-manifest.json ]; then
+            echo "✅ pages-manifest.json found"
           else
-            echo "❌ startup.sh not found"
+            echo "❌ pages-manifest.json NOT found - this will cause the app to fail"
+            echo "Contents of .next/server:"
+            ls -la ./deployment/.next/server/ || echo "No server directory"
             exit 1
           fi
       - name: Login to Azure
@@ -112,4 +113,3 @@ jobs:
           app-name: 'omniplexai'
           slot-name: 'Production'
           package: ./deployment
-          startup-command: './startup.sh'
