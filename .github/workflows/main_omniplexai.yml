@@ -37,12 +37,11 @@ jobs:
           # Copy standalone server and dependencies
           cp -R .next/standalone/* deployment-package/
 
-          # Copy static files
-          mkdir -p deployment-package/.next/static
-          cp -R .next/static/* deployment-package/.next/static/
+          # Create .next directory and copy static files
+          mkdir -p deployment-package/.next
+          cp -R .next/static deployment-package/.next/
 
           # Copy essential .next files including BUILD_ID
-          mkdir -p deployment-package/.next
           cp .next/BUILD_ID deployment-package/.next/
           cp .next/routes-manifest.json deployment-package/.next/ 2>/dev/null || true
           cp .next/prerender-manifest.json deployment-package/.next/ 2>/dev/null || true
@@ -62,6 +61,8 @@ jobs:
           ls -la deployment-package/
           echo "Checking .next directory:"
           ls -la deployment-package/.next/ || echo ".next directory not found"
+          echo "Checking for BUILD_ID:"
+          cat deployment-package/.next/BUILD_ID || echo "BUILD_ID not found"
           echo "Checking for server.js:"
           ls -la deployment-package/server.js || echo "server.js not found"
 
@@ -69,7 +70,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: deployment-package/*
+          path: deployment-package  # Changed: Remove the /* to preserve directory structure
 
   deploy:
     runs-on: ubuntu-latest
@@ -83,18 +84,18 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-          path: ./deployment
+          path: ./  # Changed: Download to current directory
 
       - name: Verify deployment structure
         run: |
-          echo "Contents of deployment directory:"
-          ls -la ./deployment/
+          echo "Contents of deployment-package directory:"
+          ls -la ./deployment-package/
           echo "Checking for server.js:"
-          ls -la ./deployment/server.js || echo "server.js not found"
+          ls -la ./deployment-package/server.js || echo "server.js not found"
           echo "Checking for .next directory:"
-          ls -la ./deployment/.next/ || echo ".next directory not found"
+          ls -la ./deployment-package/.next/ || echo ".next directory not found"
           echo "Checking for BUILD_ID:"
-          cat ./deployment/.next/BUILD_ID || echo "BUILD_ID not found"
+          cat ./deployment-package/.next/BUILD_ID || echo "BUILD_ID not found"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -109,4 +110,4 @@ jobs:
         with:
           app-name: 'omniplexai'
           slot-name: 'Production'
-          package: ./deployment
+          package: ./deployment-package  # Changed: Point to the correct directory
