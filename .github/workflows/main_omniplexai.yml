@@ -99,7 +99,6 @@ jobs:
     needs: build
     environment: production
     permissions:
-      id-token: write 
       contents: read
 
     steps:
@@ -151,7 +150,7 @@ jobs:
             exit 1
           fi
       - name: Login to Azure
-        uses: azure/login@v1 
+        uses: azure/login@v2
         with:
           client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_A710D8AC2F3C4741A1D3BAE272225977 }}
           tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_598B45F58F3E411F843535247B69A342 }}
