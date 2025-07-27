@@ -41,6 +41,7 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           OPENWEATHERMAP_API_KEY: ${{ secrets.OPENWEATHERMAP_API_KEY }}
           RAPID_API_KEY: ${{ secrets.RAPID_API_KEY }}
+          NEXT_PUBLIC_STRIPE_PRO_CHECKOUT_URL: ${{ secrets.NEXT_PUBLIC_STRIPE_PRO_CHECKOUT_URL }}
 
 
       - name: Verify build output

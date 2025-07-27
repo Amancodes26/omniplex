@@ -233,6 +233,32 @@
   height: 1px;
   background-color: #ffffff14;
 }
+
+.pricingLink {
+  margin-top: 2rem;
+  text-align: center;
+}
+
+.upgradeLink {
+  color: #35a7ff;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  padding: 8px 16px;
+  border: 1px solid #35a7ff;
+  border-radius: 20px;
+  transition: all 0.3s ease;
+  display: inline-block;
+  background: rgba(53, 167, 255, 0.1);
+}
+
+.upgradeLink:hover {
+  background: #35a7ff;
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(53, 167, 255, 0.4);
+}
+
 @media (max-width: 512px) {
   .container {
     padding: 16px;

@@ -5965,6 +5965,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@stripe/stripe-js@npm:^7.6.1":
+  version: 7.6.1
+  resolution: "@stripe/stripe-js@npm:7.6.1"
+  checksum: 5967dd2dbfde1aaeae1c2faecee38c804b17a80323344f30711cbb2b7c3d532376d9c0a51a394f8df5c9a0c4cb664480c49d7b9fa6d8fa8824ab4a4153140aa8
+  languageName: node
+  linkType: hard
+
 "@swc/helpers@npm:0.5.2":
   version: 0.5.2
   resolution: "@swc/helpers@npm:0.5.2"
@@ -11197,6 +11204,7 @@ __metadata:
     "@nextui-org/react": ^2.2.10
     "@reduxjs/toolkit": ^2.2.3
     "@remixicon/react": ^4.2.0
+    "@stripe/stripe-js": ^7.6.1
     "@tailwindcss/forms": ^0.5.7
     "@tailwindcss/typography": ^0.5.10
     "@tremor/react": ^3.16.3
@@ -11238,6 +11246,7 @@ __metadata:
     rehype-katex: ^7.0.0
     rehype-raw: ^7.0.0
     rehype-sanitize: ^6.0.0
+    stripe: ^18.3.0
     swiper: ^11.1.1
     tailwindcss: ^3.3.0
     typescript: ^5
@@ -11749,7 +11758,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"qs@npm:^6.7.0":
+"qs@npm:^6.11.0, qs@npm:^6.7.0":
   version: 6.14.0
   resolution: "qs@npm:6.14.0"
   dependencies:
@@ -12799,6 +12808,20 @@ __metadata:
   version: 3.1.1
   resolution: "strip-json-comments@npm:3.1.1"
   checksum: 492f73e27268f9b1c122733f28ecb0e7e8d8a531a6662efbd08e22cccb3f9475e90a1b82cab06a392f6afae6d2de636f977e231296400d0ec5304ba70f166443
+  languageName: node
+  linkType: hard
+
+"stripe@npm:^18.3.0":
+  version: 18.3.0
+  resolution: "stripe@npm:18.3.0"
+  dependencies:
+    qs: ^6.11.0
+  peerDependencies:
+    "@types/node": ">=12.x.x"
+  peerDependenciesMeta:
+    "@types/node":
+      optional: true
+  checksum: 5e05ebd28f0f9777a3c45f3a2204060721276d434be334c39bc88a4bb85bb47afa2e62a292e69b5dc448043f7c5f341fe3e4b025d425b46190074631142316a7
   languageName: node
   linkType: hard
 

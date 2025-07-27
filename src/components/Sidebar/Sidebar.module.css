@@ -73,6 +73,30 @@
   margin-top: 8px;
   margin-bottom: 24px;
 }
+
+.upgradeButton {
+  background: linear-gradient(135deg, #35a7ff 0%, #2c8ad9 100%);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  cursor: pointer;
+  transition: all 0.25s ease-in-out;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(53, 167, 255, 0.3);
+}
+
+.upgradeButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(53, 167, 255, 0.4);
+  background: linear-gradient(135deg, #2c8ad9 0%, #1f73b8 100%);
+}
+
+.upgradeText {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
 .iconContainer {
   flex: 1;
   display: flex;

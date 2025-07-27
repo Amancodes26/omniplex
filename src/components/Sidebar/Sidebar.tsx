@@ -103,6 +103,16 @@ const Sidebar = () => {
     router.push("/");
   };
 
+  const handleUpgradeToPro = () => {
+    closeSidebar();
+    const checkoutUrl = process.env.NEXT_PUBLIC_STRIPE_PRO_CHECKOUT_URL;
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl;
+    } else {
+      router.push('/pricing');
+    }
+  };
+
   return (
     <>
       <div className={styles.header}>
@@ -136,6 +146,16 @@ const Sidebar = () => {
           >
             <div className={styles.barContainer}>
               <Image src={Logo} alt="Logo" className={styles.logo} />
+              
+              {/* Upgrade to Pro Button */}
+              <div 
+                className={styles.upgradeButton} 
+                onClick={handleUpgradeToPro}
+                title="Upgrade to Pro"
+              >
+                <span className={styles.upgradeText}>Pro</span>
+              </div>
+              
               <div className={styles.iconContainer}>
                 <div>
                   {selected === "history" ? (

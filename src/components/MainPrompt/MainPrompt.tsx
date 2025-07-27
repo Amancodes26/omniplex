@@ -21,6 +21,7 @@ import { db } from "../../../firebaseConfig";
 import { storage } from "../../../firebaseConfig";
 import { collection, doc, setDoc, writeBatch } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import Link from "next/link";
 
 import Arrow from "../../../public/svgs/Arrow.svg";
 import Filter from "../../../public/svgs/Filter.svg";
@@ -406,6 +407,14 @@ const MainPrompt = () => {
           </div>
         </div>
       </div>
+      
+      {/* Pricing Link for Easy Testing */}
+      <div className={styles.pricingLink}>
+        <Link href="/pricing" className={styles.upgradeLink}>
+          🚀 Upgrade to Pro - Unlock unlimited searches & premium features
+        </Link>
+      </div>
+      
       {modal === "auth" && <Auth isOpen={isOpen} onClose={onClose} />}
     </div>
   );
