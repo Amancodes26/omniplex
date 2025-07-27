@@ -85,7 +85,7 @@ export default function SuccessPage() {
         </div>
 
         <div className={styles.instructions}>
-          <h3>🎯 What's Next?</h3>
+          <h3>🎯 What&apos;s Next?</h3>
           <p>
             Your Pro subscription is ready to use. All premium features are now unlocked in your account.
           </p>
